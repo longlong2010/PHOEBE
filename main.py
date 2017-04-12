@@ -4,6 +4,7 @@ import math;
 import serial;
 import time;
 import struct;
+import binascii;
 class Integrator:
     def __init__(self, u = 0, v = None, t = None):
         self.v = v;
@@ -37,7 +38,7 @@ class AttitudeController:
         return (G / I) * 180 / math.pi / 6 / 650.2;
 
 #sensor=serial. Serial(port='/dev/serial0',baudrate='9600',timeout=1)
-sensor=serial. Serial(port='/dev/ttyUSB1',baudrate='115200')
+sensor=serial. Serial(port='/dev/ttyUSB0',baudrate='115200')
 v = {};
 az=0.0;
 wz=0.0;
@@ -45,17 +46,29 @@ t=0.0;
 I = 148960e-9;
 psi_t = 30 / 180 * math.pi;
 ac = AttitudeController(-0.02, 0.05, I, psi_t);
-while True:
-    data = sensor.read(size=1)
-    if data == b'\x55':
-        print '接收到数据！'
-        sensor.read(size=10)
-        break
-    print 'tring',data
+#while True:
+#    data = sensor.read(size=1)
+#    if data == b'\x55':
+#        print '接收到数据！'
+#        sensor.read(size=10)
+#        break
+#    print 'tring',data
+
 try:
     while True:
         #time.sleep()
-        data = sensor.read(size=11)
+        data = sensor.read(size=11)    
+        k = 0;
+        for d in data:
+            if d == b'\x55':
+				break;
+            k = k + 1;
+        if k != 0:
+            data = sensor.read(k);
+
+        if data[0] != b'\x55':
+            continue;
+
         if not len(data) == 11:
             print '字节错误！'
             break

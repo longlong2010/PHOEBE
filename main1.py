@@ -105,16 +105,28 @@ if not pi.connected:
     exit(0)
 pi.set_mode(PWM1, pigpio.OUTPUT)
 #判断读数是否成功
-while True:
-    data = sensor.read(size=1)
-    if data == b'\x55':
-        print '接收到数据！'
-        sensor.read(size=10)
-        break
-    print 'tring',data
+#while True:
+#    data = sensor.read(size=1)
+#    if data == b'\x55':
+#        print '接收到数据！'
+#        sensor.read(size=10)
+#        break
+#    print 'tring',data
 try:
     while True:
         data = sensor.read(size=11)
+        #数据对齐
+        k = 0;
+        for d in data:
+            if d == b'\x55':
+                break;
+            k = k + 1;
+        if k != 0:
+            data = sensor.read(k);
+
+        if data[0] != b'\x55':
+            continue;
+
         #判断字节数是否正确
         if not len(data) == 11:
             print '字节错误！'
