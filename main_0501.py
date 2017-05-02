@@ -13,7 +13,8 @@ from jy901 import *;
 from actuator import *;
 
 #**********************************执行入口**************************************
-sensor = Jy901Serial('/dev/ttyUSB0', 115200);
+#sensor = Jy901Serial('/dev/ttyUSB0', 115200);
+sensor = Jy901I2c(0x50);
 #姿态相关参数初始化设置
 t0 = time.time();
 I = 19428e-9;

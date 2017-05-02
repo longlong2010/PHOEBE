@@ -38,15 +38,16 @@ class Jy901I2c:
     def __del__(self):
         self.bus.close();
     def getAngle(self):
-        data = bus.read_i2c_block_data(address, 0x3f);
-        return unpack("h", chr(data[0]) + chr(data[1]))[0] / 32768.0 * 180.0 * math.pi / 180;
+        data = self.bus.read_i2c_block_data(self.address, 0x3f);
+        return struct.unpack("h", chr(data[0]) + chr(data[1]))[0] / 32768.0 * 180.0 * math.pi / 180;
     def getAngularVelocity(self):
-        data = bus.read_i2c_block_data(address, 0x39);
-        return unpack("h", chr(data[0]) + chr(data[1]))[0] / 32768.0 * 2000 * math.pi / 180;
+        data = self.bus.read_i2c_block_data(self.address, 0x39);
+        return struct.unpack("h", chr(data[0]) + chr(data[1]))[0] / 32768.0 * 2000 * math.pi / 180;
 
 
 if __name__ == '__main__':
-    sensor = Jy901Serial('/dev/ttyUSB0', 115200);
+    #sensor = Jy901Serial('/dev/ttyUSB0', 115200);
+    sensor = Jy901I2c(0x50);
     while True:
         print sensor.getAngle();
         print sensor.getAngularVelocity();
