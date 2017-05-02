@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-  
 from numpy import *;
-import scipy.integrate;
+#import scipy.integrate;
 import math;
 import time;
 
@@ -50,7 +50,8 @@ class AttitudeController:
     #返回电机对应的电压
     def getVoltage(self, t, psi, omega):
         Tc = self.getControlTorque(t, psi, omega);
-        G = self.integrator.integrate(Tc, t);
+        #G = self.integrator.integrate(Tc, t);
+        G = Tc * 2;
         return (G / self.I) * 180 / math.pi / 6 / 1353;
 
 
