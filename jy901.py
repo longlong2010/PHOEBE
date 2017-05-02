@@ -1,14 +1,15 @@
 import serial;
 import smbus;
 import time;
-from struct import *;
+import struct;
+import math;
 
 class Jy901Serial:
     def __init__(self, port, baudrate):
         self.reader = serial.Serial(port, baudrate, timeout = 1);
     def __del__(self):
         self.reader.close(); 
-    def __read(cmd):
+    def __read(self, cmd):
         while True:
             data = self.reader.read(11);
             k = 0;
@@ -25,7 +26,7 @@ class Jy901Serial:
                 return data;
     def getAngle(self):
         data = self.__read(b'\x53');
-        return struct.unpack('h', data[6] + data[7])[0] / 32768.0 * 2000 * math.pi / 180;
+        return struct.unpack('h', data[6] + data[7])[0] / 32768.0 * 180 * math.pi / 180;
     def getAngularVelocity(self):
         data = self.__read(b'\x52');
         return struct.unpack('h', data[6] + data[7])[0] / 32768.0 * 2000 * math.pi / 180;
@@ -45,24 +46,7 @@ class Jy901I2c:
 
 
 if __name__ == '__main__':
-    #s = serial.Serial(port = '/dev/ttyUSB0', baudrate = 115200, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE);
-    s = serial.Serial(port = '/dev/ttyUSB0', baudrate = 115200, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE);
-    data = s.read(11);
-    print(binascii.b2a_hex(data));
-    k = 0;
-    for d in data:
-        if d == b'\x55':
-            print(k);
-            break;
-        k = k + 1;
-    print(k);
-    if k != 0:
-        data = s.read(k);
-        print(binascii.b2a_hex(data));
-        #data = binascii.b2a_hex(data);
-        #print(data);
+    sensor = Jy901Serial('/dev/ttyUSB0', 115200);
     while True:
-        data = s.read(11);
-        print(binascii.b2a_hex(data));
-        break;
-    s.close();
+        print sensor.getAngle();
+        print sensor.getAngularVelocity();

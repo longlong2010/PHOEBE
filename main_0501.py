@@ -9,7 +9,7 @@ import serial;
 import pigpio;
 from datetime import datetime;
 from controller import *;
-
+from jy901 import *; 
 
 def set_dc(channel, dc):
    global old_wid
@@ -81,9 +81,7 @@ def SetVoltage(Voltage):
     Brake()
 
 #**********************************执行入口**************************************
-#串口初始化
-#sensor=serial. Serial(port='/dev/serial0',baudrate='9600',timeout=1)
-sensor=serial. Serial(port='/dev/ttyUSB0',baudrate='115200',timeout=1)
+sensor = Jy901Serial('/dev/ttyUSB0', 115200);
 
 #姿态相关参数初始化设置
 v = {};
@@ -119,51 +117,24 @@ pi.set_mode(PWM2, pigpio.OUTPUT)
 pi.set_mode(PIN_MotorEN1, pigpio.OUTPUT)
 pi.set_mode(PIN_MotorEN2, pigpio.OUTPUT)
 
-
 try:
     while True:
-        data = sensor.read(size=11)
-        #数据对齐
-        k = 0;
-        for d in data:
-            if d == b'\x55':
-                break;
-            k = k + 1;
-        if k != 0:
-            data = sensor.read(k);
-
-        if data[0] != b'\x55':
-            continue;
-
-        #判断字节数是否正确
-        if not len(data) == 11:
-            print '字节错误！'
-            break
         #角速度
-        if data[1] == b'\x52':
-            omega = struct.unpack('h', data[6] + data[7])[0] / 32768.0 * 2000 * math.pi / 180;
-            v['0'] = omega;
         #角度
-        elif data[1] == b'\x53':
-            psi = struct.unpack('h', data[6] + data[7])[0] / 32768.0 * 180 * math.pi / 180;
-            v['1'] = psi;
+        omega = sensor.getAngularVelocity();
+        psi = sensor.getAngle();
         #获得系统当前时间
         t = time.time();
         #转换成电压
-        if v.has_key('0') and v.has_key('1'):
-            #print "%f\t%f" % (v['0']*180/math.pi, v['1']*180/math.pi);
-            voltage = ac.getVoltage(t, psi, omega);
-            SetVoltage(voltage)
-          #  time.sleep(10.5)
-            #print(voltage);
-            print "%s\t%f\t%f\t%f" % (datetime.fromtimestamp(t), psi * 180 / math.pi, omega * 180 / math.pi, voltage);
-            v = {};
+        #print "%f\t%f" % (v['0']*180/math.pi, v['1']*180/math.pi);
+        voltage = ac.getVoltage(t, psi, omega);
+        SetVoltage(voltage)
+        #time.sleep(10.5)
+        #print(voltage);
+        print "%s\t%f\t%f\t%f" % (datetime.fromtimestamp(t), psi * 180 / math.pi, omega * 180 / math.pi, voltage);
 except KeyboardInterrupt:
     pi.wave_tx_stop()
     if old_wid is not None:
         pi.wave_delete(old_wid)
     pi.write(PWM1, 0);
     pi.stop()
-    sensor.close()
-    print('关闭传感器 !')
-
